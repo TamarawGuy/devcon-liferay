@@ -1,0 +1,4 @@
+devcon-global-css:
+    name: DevCon Global CSS
+    type: globalCSS
+    url: css/main.css
