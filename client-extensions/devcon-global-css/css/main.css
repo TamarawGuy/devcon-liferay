@@ -1,0 +1,30 @@
+/*
+ * Injected on every page by the devcon-global-css client extension.
+ *
+ * Additive only: this file must never redefine a class that already exists in
+ * the theme. At equal specificity the later stylesheet wins, which produces
+ * cascade conflicts that are painful to trace. New selectors only.
+ */
+
+:root {
+	--devcon-accent: #0b5fff;
+	--devcon-accent-alt: #7b2ff7;
+}
+
+/* Proof-of-deploy accent stripe. A new pseudo-element on body, so nothing the
+   theme already styles is touched. */
+body::before {
+	background: linear-gradient(
+		90deg,
+		var(--devcon-accent),
+		var(--devcon-accent-alt)
+	);
+	content: "";
+	display: block;
+	height: 4px;
+	left: 0;
+	position: fixed;
+	right: 0;
+	top: 0;
+	z-index: 9999;
+}
