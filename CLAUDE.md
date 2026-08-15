@@ -4,7 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Relationship to `.claude/CLAUDE.md`
 
-`.claude/CLAUDE.md` holds the portable Liferay ruleset (skill index, reference cards, agent conventions). It is a **copy** — the source is `.workspace-rules/liferay-rules.md`, mirrored byte-for-byte into `.claude/`, `.cursor/`, `.windsurf/`, and `.gemini/` (same for `rules/` and `skills/`). Change the ruleset in `.workspace-rules/` and re-mirror to all four; do not edit one copy in place.
+`.claude/CLAUDE.md` holds the portable Liferay ruleset (skill index, reference cards, agent conventions). It is a **copy** — the source is `.workspace-rules/liferay-rules.md`, mirrored byte-for-byte into `.claude/` (same for `rules/` and `skills/`). Change the ruleset in `.workspace-rules/` and re-mirror; do not edit the copy in place.
+
+The template also ships `.cursor/`, `.windsurf/`, and `.gemini/` mirrors of the same content. They were removed here because this workspace only uses Claude Code, and an unscripted four-way manual mirror drifts silently. To restore one for a teammate on a different tool, copy `.workspace-rules/{rules,skills}` into the target directory and add that tool's entrypoint file (`.mdc` with YAML frontmatter for Cursor, `rules/liferay.md` for Windsurf, `GEMINI.md` for Gemini).
 
 This file holds what is specific to *this* workspace instance and is not in the template.
 
@@ -18,7 +20,7 @@ This file holds what is specific to *this* workspace instance and is not in the 
 | Blade / JDK on PATH | blade 8.0.2, OpenJDK 21 |
 | Tomcat dir | `bundles/tomcat` (**unversioned** — the template's `bundles/tomcat*/` glob still matches, but literal `bundles/tomcat-9.x` paths do not exist) |
 | HTTP port | 8080 (`bundles/tomcat/conf/server.xml`) |
-| Version control | **not a git repo** — no diffs, no history, nothing to compare against |
+| Version control | git — remote `github.com/TamarawGuy/devcon-liferay`, default branch `main`. GitHub flow: one branch per feature, PR review before merge, no direct commits to `main` |
 
 7.4 GA is not a quarterly release. Client Extensions, Objects, and Fragments all apply, but any API or feature flag introduced in a `-Qx` line may simply be absent. Verify against the running portal (`GET /o/<module>/v1.0/openapi.json`) before relying on an endpoint from the reference cards.
 
