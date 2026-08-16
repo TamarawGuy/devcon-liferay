@@ -1,6 +1,6 @@
 # Headless APIs
 
-Key Liferay REST modules, their base URIs, primary resources, and OAuth scopes. All paths resolve relative to `http://localhost:${PORT}`. Use Basic auth (`test@liferay.com:test`) for the curl examples on this page and in the skills. The OAuth scope strings noted per module are for `oAuthApplicationHeadlessServer` blocks when scaffolding microservice CETs — see `rules/oauth-scopes.md` for the full scaffolding reference.
+Key Liferay REST modules, their base URIs, primary resources, and OAuth scopes. All paths resolve relative to `http://localhost:${PORT}`. Use Basic auth for the curl examples on this page and in the skills — take the credentials from the workspace's own `CLAUDE.md`, **not** from the template default `test@liferay.com:test`. Liferay forces a password reset at first login, so that default is invalid on any bundle that has been logged into; a wrong password returns `403` with an empty `{ }` body on every `/o/` endpoint, which looks like an auth verifier or CORS fault and is not one. The OAuth scope strings noted per module are for `oAuthApplicationHeadlessServer` blocks when scaffolding microservice CETs — see `rules/oauth-scopes.md` for the full scaffolding reference.
 
 The tables below list the common endpoints per module — they are not exhaustive. To confirm an exact path or find an endpoint not listed here, use the `get-openapi` MCP tool (see `skills/mcp-server/SKILL.md`), or fetch `GET /o/<module>/v1.0/openapi.json` directly. Base URIs, feature flag gates, and OAuth scopes are *not* discoverable from the specs — rely on this card for those.
 
@@ -12,16 +12,17 @@ The tables below list the common endpoints per module — they are not exhaustiv
 
 | Resource | Method | Path |
 | --- | --- | --- |
-| List sites | GET | `/sites` |
-| Create site | POST | `/sites` |
-| Get site | GET | `/sites/{siteExternalReferenceCode}` |
 | Create page | POST | `/sites/{siteExternalReferenceCode}/site-pages` |
 | List pages | GET | `/sites/{siteExternalReferenceCode}/site-pages` |
-| Create navigation menu | POST | `/sites/{siteExternalReferenceCode}/navigation-menus` |
 | Create display page template | POST | `/sites/{siteExternalReferenceCode}/display-page-templates` |
 | Create master page | POST | `/sites/{siteExternalReferenceCode}/master-pages` |
+| List page templates | GET | `/sites/{siteExternalReferenceCode}/page-templates` |
 
-**Required flag:** `LPD-35443` (off by default) for public layout API; `LPD-38869` (on by default) for private. Page-element / page-specification composition additionally requires `LPD-74328`.
+> **This module exposes no `/sites` collection and no bare `/sites/{erc}`.** Verified against `openapi.json` on 7.4 GA132: **every** path is a `/sites/{siteExternalReferenceCode}/…` subresource. There is no `GET /sites`, no `POST /sites`, no `GET /sites/{erc}`, and **no `DELETE /sites/{erc}`** — which means the reprovision recipe in `rules/site-initializer-format.md` has no matching path on this version. `navigation-menus` is likewise absent here. To discover a site's ERC, read `siteBriefs` from `GET /o/headless-admin-user/v1.0/my-user-account` (the default Guest site is `L_GUEST`).
+
+**Required flag:** `LPD-35443` (off by default). Verified on 7.4 GA132 by toggling and restarting: with the flag off, every operation above returns **`400`** with `{"status":"BAD_REQUEST","type":"UnsupportedOperationException"}` — not `401`, `403`, or `404`. `LPD-38869` (on by default) for private layouts. Page-element / page-specification composition additionally requires `LPD-74328`.
+
+> **`openapi.json` returns `200` regardless of flag state.** The spec advertises operations the flag will reject, so flag state is *not* observable from the spec or from the `/o/api` explorer listing. Only executing a call proves it.
 
 **OAuth scope:** `Liferay.Headless.Admin.Site.everything`
 
