@@ -1,4 +1,10 @@
+assemble:
+  - from: assets
+    hashify: global.css
+    into: static
+
 devcon-global-css:
-    name: DevCon Global CSS
-    type: globalCSS
-    url: css/main.css
+  name: DevCon Global CSS
+  scope: company
+  type: globalCSS
+  url: global.*.css
