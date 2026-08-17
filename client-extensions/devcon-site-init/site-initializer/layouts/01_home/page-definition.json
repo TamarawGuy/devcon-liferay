@@ -1,20 +1,96 @@
 {
-    "pageElement": {
-        "pageElements": [
-            {
-                "definition": {
-                    "fragment": {
-                        "key": "hero",
-                        "siteKey": "[$GROUP_KEY$]"
-                    },
-                    "fragmentConfig": {},
-                    "fragmentFields": [],
-                    "indexed": true
-                },
-                "type": "Fragment"
-            }
-        ],
-        "type": "Root"
-    },
-    "version": 1.1
+	"pageElement": {
+		"pageElements": [
+			{
+				"definition": {
+					"fragment": {
+						"key": "hero",
+						"siteKey": "[$GROUP_KEY$]"
+					},
+					"fragmentConfig": {},
+					"fragmentFields": [],
+					"indexed": true
+				},
+				"type": "Fragment"
+			},
+			{
+				"definition": {
+					"collectionConfig": {
+						"collectionReference": {
+							"className": "com.liferay.object.model.ObjectDefinition#A4A0"
+						},
+						"collectionType": "CollectionProvider"
+					},
+					"displayAllItems": true,
+					"numberOfColumns": 3,
+					"numberOfItems": 100
+				},
+				"pageElements": [
+					{
+						"definition": {
+							"collectionItemConfig": {}
+						},
+						"pageElements": [
+							{
+								"definition": {
+									"fragment": {
+										"key": "session-card",
+										"siteKey": "[$GROUP_KEY$]"
+									},
+									"fragmentConfig": {},
+									"fragmentFields": [
+										{
+											"id": "session-title",
+											"value": {
+												"text": {
+													"mapping": {
+														"fieldKey": "ObjectField_title",
+														"itemReference": {
+															"contextSource": "CollectionItem"
+														}
+													}
+												}
+											}
+										},
+										{
+											"id": "session-time",
+											"value": {
+												"text": {
+													"mapping": {
+														"fieldKey": "ObjectField_startTime",
+														"itemReference": {
+															"contextSource": "CollectionItem"
+														}
+													}
+												}
+											}
+										},
+										{
+											"id": "session-room",
+											"value": {
+												"text": {
+													"mapping": {
+														"fieldKey": "ObjectField_room",
+														"itemReference": {
+															"contextSource": "CollectionItem"
+														}
+													}
+												}
+											}
+										}
+									],
+									"indexed": true
+								},
+								"type": "Fragment"
+							}
+						],
+						"type": "CollectionItem"
+					}
+				],
+				"type": "Collection"
+			}
+		],
+		"type": "Root"
+	},
+	"version": 1.1
 }

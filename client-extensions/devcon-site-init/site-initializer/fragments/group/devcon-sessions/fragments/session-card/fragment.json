@@ -1,0 +1,9 @@
+{
+	"cacheable": false,
+	"configurationPath": "configuration.json",
+	"cssPath": "index.css",
+	"htmlPath": "index.html",
+	"icon": "code",
+	"name": "Session Card",
+	"type": "component"
+}
