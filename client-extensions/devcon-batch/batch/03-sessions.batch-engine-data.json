@@ -1,0 +1,60 @@
+{
+	"configuration": {
+		"className": "com.liferay.object.rest.dto.v1_0.ObjectEntry",
+		"parameters": {
+			"createStrategy": "UPSERT",
+			"importStrategy": "ON_ERROR_FAIL",
+			"updateStrategy": "UPDATE"
+		},
+		"taskItemDelegateName": "C_Session"
+	},
+	"items": [
+		{
+			"abstract": "Long-form walkthrough of a system that grew past its original assumptions, including the parts that went badly. Covers projections, replay, schema evolution, and the operational cost nobody budgets for. Bring questions about failure modes; there will be time.",
+			"externalReferenceCode": "299bb1b3-ae0e-a1ad-8b58-247192dd4b67",
+			"r_devconSpeakerSessions_c_speakerERC": "ec8297c0-5400-492c-6274-c6f442c5e438",
+			"room": "Room 2",
+			"startTime": "2026-11-12T14:00:00.000Z",
+			"title": "Event Sourcing for People Who Have to Maintain It on a Tuesday Afternoon in Production"
+		},
+		{
+			"abstract": "A practical look at token systems that survive contact with a real product team. We cover naming, theming, and the moment someone asks for a fifth shade of grey.",
+			"externalReferenceCode": "4f9291a8-67af-f9cd-9dba-426450f0220f",
+			"r_devconSpeakerSessions_c_speakerERC": "53c13163-610c-4c62-3bf0-b77d978bf6d4",
+			"room": "Hall A",
+			"startTime": "2026-11-12T12:00:00.000Z",
+			"title": "Design Tokens Without the Ceremony"
+		},
+		{
+			"abstract": "How to replace a system while it stays online.",
+			"externalReferenceCode": "95a467c4-d461-f71f-3e07-603feddf4294",
+			"r_devconSpeakerSessions_c_speakerERC": "4d1bdd32-0235-3821-7ee9-190e6456f593",
+			"room": "Hall B",
+			"startTime": "2026-11-12T16:00:00.000Z",
+			"title": "Incremental Migration Strategies"
+		},
+		{
+			"abstract": "",
+			"externalReferenceCode": "bfdd8496-0d64-e9a2-4d77-53f824dc62a7",
+			"r_devconSpeakerSessions_c_speakerERC": "ec8297c0-5400-492c-6274-c6f442c5e438",
+			"room": "Room 2",
+			"startTime": "2026-11-12T15:00:00.000Z",
+			"title": "Queues"
+		},
+		{
+			"abstract": "Specificity, layers, and the small decisions that turn a stylesheet into a liability.",
+			"externalReferenceCode": "e3b5f794-6ab7-12e1-4477-910e30dcf9b3",
+			"r_devconSpeakerSessions_c_speakerERC": "53c13163-610c-4c62-3bf0-b77d978bf6d4",
+			"room": "Hall 2",
+			"startTime": "2026-11-12T13:00:00.000Z",
+			"title": "Why Your Cascade Hurts"
+		},
+		{
+			"abstract": "",
+			"externalReferenceCode": "f17d8256-4675-804c-90ce-b1cb3c2321e1",
+			"room": "Hall A",
+			"startTime": "2026-11-12T17:00:00.000Z",
+			"title": "Closing Panel"
+		}
+	]
+}

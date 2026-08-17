@@ -1,0 +1,31 @@
+{
+	"configuration": {
+		"className": "com.liferay.object.rest.dto.v1_0.ObjectEntry",
+		"parameters": {
+			"createStrategy": "UPSERT",
+			"importStrategy": "ON_ERROR_FAIL",
+			"updateStrategy": "UPDATE"
+		},
+		"taskItemDelegateName": "C_Speaker"
+	},
+	"items": [
+		{
+			"bio": "",
+			"company": "",
+			"externalReferenceCode": "4d1bdd32-0235-3821-7ee9-190e6456f593",
+			"fullName": "Ren Okabe"
+		},
+		{
+			"bio": "Frontend architect working on design systems at scale. Spends most of her time arguing that CSS is a real programming language and losing gracefully.",
+			"company": "Northwind labs",
+			"externalReferenceCode": "53c13163-610c-4c62-3bf0-b77d978bf6d4",
+			"fullName": "Mira Halvorsen"
+		},
+		{
+			"bio": "Backend engineer focused on event-driven systems.",
+			"company": "Kestrel Data Cooperative",
+			"externalReferenceCode": "ec8297c0-5400-492c-6274-c6f442c5e438",
+			"fullName": "Tobias Ferreira-Whitlock"
+		}
+	]
+}

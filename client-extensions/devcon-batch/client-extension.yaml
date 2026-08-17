@@ -1,0 +1,18 @@
+assemble:
+    -   from: batch
+        into: batch
+
+devcon-batch:
+    name: DevCon Batch
+    oAuthApplicationHeadlessServer: devcon-batch-oahs
+    type: batch
+
+devcon-batch-oahs:
+    .serviceAddress: localhost:8080
+    .serviceScheme: http
+    name: DevCon Batch OAuth Application Headless Server
+    scopes:
+        -   Liferay.Headless.Batch.Engine.everything
+        -   Liferay.Headless.Object.everything
+        -   Liferay.Object.Admin.REST.everything
+    type: oAuthApplicationHeadlessServer

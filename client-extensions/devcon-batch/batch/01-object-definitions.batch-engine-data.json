@@ -1,0 +1,293 @@
+{
+	"configuration": {
+		"className": "com.liferay.object.admin.rest.dto.v1_0.ObjectDefinition",
+		"parameters": {
+			"createStrategy": "UPSERT",
+			"importStrategy": "ON_ERROR_FAIL",
+			"updateStrategy": "UPDATE"
+		},
+		"taskItemDelegateName": "DEFAULT"
+	},
+	"items": [
+		{
+			"accountEntryRestricted": false,
+			"accountEntryRestrictedObjectFieldName": "",
+			"active": true,
+			"defaultLanguageId": "en_US",
+			"enableCategorization": true,
+			"enableComments": false,
+			"enableIndexSearch": true,
+			"enableLocalization": false,
+			"enableObjectEntryDraft": false,
+			"enableObjectEntryHistory": false,
+			"externalReferenceCode": "DEVCON_SESSION",
+			"label": {
+				"en_US": "Session"
+			},
+			"name": "Session",
+			"objectActions": [],
+			"objectFields": [
+				{
+					"DBType": "String",
+					"businessType": "Text",
+					"externalReferenceCode": "c3985e0b-d962-691c-e167-69e39f9dd5cc",
+					"indexed": true,
+					"indexedAsKeyword": false,
+					"indexedLanguageId": "en_US",
+					"label": {
+						"en_US": "Title"
+					},
+					"localized": false,
+					"name": "title",
+					"objectFieldSettings": [],
+					"readOnly": "false",
+					"readOnlyConditionExpression": "",
+					"required": true,
+					"state": false,
+					"system": false,
+					"type": "String",
+					"unique": false
+				},
+				{
+					"DBType": "Clob",
+					"businessType": "LongText",
+					"externalReferenceCode": "09fc18de-5e8c-5854-2ec1-386902e38943",
+					"indexed": true,
+					"indexedAsKeyword": false,
+					"indexedLanguageId": "en_US",
+					"label": {
+						"en_US": "Abstract"
+					},
+					"localized": false,
+					"name": "abstract",
+					"objectFieldSettings": [
+						{
+							"name": "showCounter",
+							"value": false
+						}
+					],
+					"readOnly": "false",
+					"readOnlyConditionExpression": "",
+					"required": false,
+					"state": false,
+					"system": false,
+					"type": "Clob",
+					"unique": false
+				},
+				{
+					"DBType": "DateTime",
+					"businessType": "DateTime",
+					"externalReferenceCode": "0117083a-39c3-512b-7a6e-95ee8d2acd6a",
+					"indexed": true,
+					"indexedAsKeyword": false,
+					"indexedLanguageId": "",
+					"label": {
+						"en_US": "Start Time"
+					},
+					"localized": false,
+					"name": "startTime",
+					"objectFieldSettings": [
+						{
+							"name": "timeStorage",
+							"value": "convertToUTC"
+						}
+					],
+					"readOnly": "false",
+					"readOnlyConditionExpression": "",
+					"required": false,
+					"state": false,
+					"system": false,
+					"type": "DateTime",
+					"unique": false
+				},
+				{
+					"DBType": "String",
+					"businessType": "Text",
+					"externalReferenceCode": "397b2582-474a-115d-a356-dc1a5bb5e315",
+					"indexed": true,
+					"indexedAsKeyword": false,
+					"indexedLanguageId": "en_US",
+					"label": {
+						"en_US": "Room"
+					},
+					"localized": false,
+					"name": "room",
+					"objectFieldSettings": [],
+					"readOnly": "false",
+					"readOnlyConditionExpression": "",
+					"required": false,
+					"state": false,
+					"system": false,
+					"type": "String",
+					"unique": false
+				}
+			],
+			"objectFolderExternalReferenceCode": "DEVCON",
+			"objectLayouts": [],
+			"objectRelationships": [],
+			"objectValidationRules": [],
+			"objectViews": [],
+			"panelCategoryKey": "applications_menu.applications.content",
+			"parameterRequired": false,
+			"pluralLabel": {
+				"en_US": "Sessions"
+			},
+			"portlet": true,
+			"scope": "company",
+			"titleObjectFieldName": "title"
+		},
+		{
+			"accountEntryRestricted": false,
+			"accountEntryRestrictedObjectFieldName": "",
+			"active": true,
+			"defaultLanguageId": "en_US",
+			"enableCategorization": true,
+			"enableComments": false,
+			"enableIndexSearch": true,
+			"enableLocalization": false,
+			"enableObjectEntryDraft": false,
+			"enableObjectEntryHistory": false,
+			"externalReferenceCode": "DEVCON_SPEAKER",
+			"label": {
+				"en_US": "Speaker"
+			},
+			"name": "Speaker",
+			"objectActions": [],
+			"objectFields": [
+				{
+					"DBType": "String",
+					"businessType": "Text",
+					"externalReferenceCode": "c7f907e7-f61a-be56-6749-51f90c51055a",
+					"indexed": true,
+					"indexedAsKeyword": false,
+					"indexedLanguageId": "en_US",
+					"label": {
+						"en_US": "Full Name"
+					},
+					"localized": false,
+					"name": "fullName",
+					"objectFieldSettings": [],
+					"readOnly": "false",
+					"readOnlyConditionExpression": "",
+					"required": true,
+					"state": false,
+					"system": false,
+					"type": "String",
+					"unique": false
+				},
+				{
+					"DBType": "String",
+					"businessType": "Text",
+					"externalReferenceCode": "aab1a7d6-e7a0-f42b-8722-9268dd170b61",
+					"indexed": true,
+					"indexedAsKeyword": false,
+					"indexedLanguageId": "en_US",
+					"label": {
+						"en_US": "Company"
+					},
+					"localized": false,
+					"name": "company",
+					"objectFieldSettings": [],
+					"readOnly": "false",
+					"readOnlyConditionExpression": "",
+					"required": false,
+					"state": false,
+					"system": false,
+					"type": "String",
+					"unique": false
+				},
+				{
+					"DBType": "Clob",
+					"businessType": "LongText",
+					"externalReferenceCode": "a16438e1-c722-585b-82f9-ae20ac5373d7",
+					"indexed": true,
+					"indexedAsKeyword": false,
+					"indexedLanguageId": "en_US",
+					"label": {
+						"en_US": "Bio"
+					},
+					"localized": false,
+					"name": "bio",
+					"objectFieldSettings": [
+						{
+							"name": "showCounter",
+							"value": false
+						}
+					],
+					"readOnly": "false",
+					"readOnlyConditionExpression": "",
+					"required": false,
+					"state": false,
+					"system": false,
+					"type": "Clob",
+					"unique": false
+				}
+			],
+			"objectFolderExternalReferenceCode": "DEVCON",
+			"objectLayouts": [],
+			"objectRelationships": [
+				{
+					"deletionType": "disassociate",
+					"externalReferenceCode": "952e9496-b2cf-8b52-2b80-8617899662ba",
+					"label": {
+						"en_US": "Sessions"
+					},
+					"name": "devconSpeakerSessions",
+					"objectDefinitionExternalReferenceCode1": "DEVCON_SPEAKER",
+					"objectDefinitionExternalReferenceCode2": "DEVCON_SESSION",
+					"objectDefinitionModifiable2": true,
+					"objectDefinitionName2": "Session",
+					"objectDefinitionScope2": "company",
+					"objectDefinitionSystem2": false,
+					"objectField": {
+						"DBType": "Long",
+						"businessType": "Relationship",
+						"externalReferenceCode": "777854ad-7348-9bfa-242a-e011f05e3ea3",
+						"indexed": true,
+						"indexedAsKeyword": false,
+						"indexedLanguageId": "",
+						"label": {
+							"en_US": "Sessions"
+						},
+						"localized": false,
+						"name": "r_devconSpeakerSessions_c_speakerId",
+						"objectDefinitionExternalReferenceCode1": "DEVCON_SPEAKER",
+						"objectFieldSettings": [
+							{
+								"name": "objectDefinition1ShortName",
+								"value": "Speaker"
+							},
+							{
+								"name": "objectRelationshipERCObjectFieldName",
+								"value": "r_devconSpeakerSessions_c_speakerERC"
+							}
+						],
+						"objectRelationshipExternalReferenceCode": "952e9496-b2cf-8b52-2b80-8617899662ba",
+						"readOnly": "false",
+						"readOnlyConditionExpression": "",
+						"relationshipType": "oneToMany",
+						"required": false,
+						"state": false,
+						"system": false,
+						"type": "Long",
+						"unique": false
+					},
+					"parameterObjectFieldName": "",
+					"reverse": false,
+					"system": false,
+					"type": "oneToMany"
+				}
+			],
+			"objectValidationRules": [],
+			"objectViews": [],
+			"panelCategoryKey": "applications_menu.applications.content",
+			"parameterRequired": false,
+			"pluralLabel": {
+				"en_US": "Speakers"
+			},
+			"portlet": true,
+			"scope": "company",
+			"titleObjectFieldName": "fullName"
+		}
+	]
+}
