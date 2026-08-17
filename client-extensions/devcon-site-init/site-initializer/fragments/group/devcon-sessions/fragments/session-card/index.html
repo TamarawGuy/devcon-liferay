@@ -1,0 +1,19 @@
+<article class="devcon-session devcon-session--${configuration.cardStyle}">
+        <h3 class="devcon-session__title" data-lfr-editable-id="session-title" data-lfr-editable-type="text">
+                Session title
+        </h3>
+
+        <dl class="devcon-session__meta">
+                <dt class="devcon-session__label">Time</dt>
+                <dd class="devcon-session__value" data-lfr-editable-id="session-time" data-lfr-editable-type="text">
+                        00:00
+                </dd>
+
+                [#if configuration.showRoom]
+                        <dt class="devcon-session__label">Room</dt>
+                        <dd class="devcon-session__value" data-lfr-editable-id="session-room" data-lfr-editable-type="text">
+                                TBA
+                        </dd>
+                [/#if]
+        </dl>
+  </article>

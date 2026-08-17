@@ -168,6 +168,19 @@ entries      →  {configuration, items} envelope — ready for a batch CET
 definitions  →  raw DTO, no envelope — must be wrapped by hand
 ```
 
+### [#9](../../pull/9) Session list on the Home page
+
+A `session-card` fragment in a new `DevCon Sessions` set, rendered once per record by a
+**Collection Display** bound to the `Session` object. Field mappings are declarative —
+`ObjectField_title`, `ObjectField_startTime`, `ObjectField_room` map to the fragment's
+editable regions — so a content editor can restyle or remap without touching code.
+
+The fragment was authored in the Liferay fragment editor and exported. Fragments, unlike
+objects, round-trip byte-for-byte.
+
+**This step ships one line that is not portable.** See
+[Object-backed Collections cannot be expressed portably](#object-backed-collections-cannot-be-expressed-portably).
+
 ## Things that cost us time
 
 Each of these was a real dead end. They are recorded because none of them are documented
@@ -273,6 +286,94 @@ headless-delivery     /sites/{siteId}                  → 20117      (ERC 404s)
 `/sites/{erc}` — every path is a subresource. So `DELETE /sites/{erc}` does not exist, and
 the reprovision recipe in `rules/site-initializer-format.md` cannot be followed as written.
 Delete the site from the Control Panel instead.
+
+### Object-backed Collections cannot be expressed portably
+
+`layouts/01_home/page-definition.json` contains this, and it **will not work on your
+machine**:
+
+```json
+"className": "com.liferay.object.model.ObjectDefinition#A4A0"
+```
+
+That `#A4A0` suffix is generated **randomly per object definition**. Measured directly:
+creating an object, deleting it, and recreating it with an identical ERC, name, and fields
+produced `#U9Q3` and then `#H1B0`. It is not derived from the ERC, the name, or anything you
+control.
+
+A site initializer resolves exactly **eight** tokens, and none yields a class name:
+
+```
+[$COMPANY_ID  [$GROUP_FRIENDLY_URL  [$GROUP_ID    [$GROUP_KEY
+[$LAYOUT_ID   [$LIST_TYPE_DEFINITION_ID  [$OBJECT_DEFINITION_ID  [$PORTAL_URL
+```
+
+Four source forms were tried. Only the literal works:
+
+| Form | Result |
+| --- | --- |
+| `[$OBJECT_DEFINITION_CLASS_NAME:Session$]` | dropped — token does not exist |
+| `[$OBJECT_DEFINITION_CLASS_NAME:DEVCON_SESSION$]` | dropped — same |
+| `className` + `classPK` via `[$OBJECT_DEFINITION_ID:Session$]` | dropped |
+| literal `…ObjectDefinition#A4A0` | **works** |
+
+`OBJECT_DEFINITION_CLASS_NAME` appears in **no jar** in the portal. Several sources online
+present it as standard; it may exist in a quarterly release, but not in 7.4 GA132.
+
+**To make the collection work on your machine**, read your own suffix and paste it in:
+
+```bash
+curl -s -u <user>:<pass> \
+  "http://localhost:8080/o/object-admin/v1.0/object-definitions?pageSize=50" \
+  | grep -o '"className"[^,]*'
+```
+
+Then delete the DevCon site and redeploy. Symptom if you skip this: the page renders with
+**"No Results Found"** under the hero, and nothing in any log explains why.
+
+### `numberOfItems` is mandatory, and omitting it destroys the whole site
+
+With `displayAllItems: true` set, `numberOfItems` looks redundant. The importer reads it
+unconditionally:
+
+```
+InitializationException: java.lang.NullPointerException:
+Cannot invoke "java.lang.Integer.intValue()" because "numberOfItems" is null
+```
+
+Site initialization aborts entirely — no site, no pages, no fragments. The deploy still
+reports success. **When a site fails to provision, `grep InitializationException` in
+`catalina.out` first**; it names the exact field.
+
+### Collections read the search index, not the database
+
+A session existed, was `approved`, and was returned by `/o/c/sessions` — but never appeared
+on the page. Elasticsearch confirmed only 5 of 6 documents were indexed, and "Reindex all
+search indexes" did not fix it (it produced 4, then 5).
+
+A single `PATCH` to the entry did, immediately:
+
+```bash
+curl -u <user>:<pass> -X PATCH ".../o/c/sessions/<id>" \
+  -H "Content-Type: application/json" -d '{"room":"Hall A"}'
+```
+
+Bulk imports do not reliably trigger the same indexing path as UI writes, so **verify the
+front end after any batch import**, not just the row count. A targeted update re-indexes one
+document synchronously; a global reindex is asynchronous and can complete partially while
+reporting nothing.
+
+### The authoritative list of client extension types
+
+Not the reference card — read it from the workspace plugin itself:
+
+```bash
+unzip -p ~/.gradle/caches/modules-2/**/com.liferay.gradle.plugins.workspace-*.jar \
+  '*client-extension.properties'
+```
+
+There is no `objectDefinition` type, despite online guides describing one. The real object
+types are `objectAction`, `objectEntryManager`, and `objectValidationRule`.
 
 ## How to change things
 

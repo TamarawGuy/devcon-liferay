@@ -1,0 +1,33 @@
+{
+        "fieldSets": [
+                {
+                        "fields": [
+                                {
+                                        "dataType": "string",
+                                        "defaultValue": "bordered",
+                                        "label": "Card Style",
+                                        "name": "cardStyle",
+                                        "type": "select",
+                                        "typeOptions": {
+                                                "validValues": [
+                                                        {
+                                                                "label": "Bordered",
+                                                                "value": "bordered"
+                                                        },
+                                                        {
+                                                                "label": "Raised",
+                                                                "value": "raised"
+                                                        }
+                                                ]
+                                        }
+                                },
+                                {
+                                        "defaultValue": true,
+                                        "label": "Show Room",
+                                        "name": "showRoom",
+                                        "type": "checkbox"
+                                }
+                        ]
+                }
+        ]
+  }
