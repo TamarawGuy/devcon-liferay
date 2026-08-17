@@ -1,0 +1,8 @@
+{
+    "cacheable": false,
+    "cssPath": "index.css",
+    "htmlPath": "index.html",
+    "icon": "heading",
+    "name": "DevCon Hero",
+    "type": "component"
+}

@@ -1,0 +1,27 @@
+#wrapper .devcon-hero {
+    background: linear-gradient(
+            135deg,
+            var(--devcon-accent, #0b5fff),
+            var(--devcon-accent-alt, #7b2ff7)
+    );
+    color: #fff;
+    padding: 5rem 1.5rem;
+}
+
+#wrapper .devcon-hero__inner {
+    margin: 0 auto;
+    max-width: 60rem;
+}
+
+#wrapper .devcon-hero__title {
+    color: #fff;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 700;
+    margin: 0 0 1rem;
+}
+
+#wrapper .devcon-hero__subtitle {
+    font-size: 1.25rem;
+    margin: 0;
+    opacity: 0.9;
+}

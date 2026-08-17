@@ -1,6 +1,19 @@
 {
     "pageElement": {
-        "pageElements": [],
+        "pageElements": [
+            {
+                "definition": {
+                    "fragment": {
+                        "key": "hero",
+                        "siteKey": "[$GROUP_KEY$]"
+                    },
+                    "fragmentConfig": {},
+                    "fragmentFields": [],
+                    "indexed": true
+                },
+                "type": "Fragment"
+            }
+        ],
         "type": "Root"
     },
     "version": 1.1
