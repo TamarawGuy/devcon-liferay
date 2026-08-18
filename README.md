@@ -40,6 +40,12 @@ The site initializer autoprovisions the DevCon site on deploy, so `/web/devcon/h
 render afterwards. Deploy a single extension instead with
 `blade gw :client-extensions:<name>:deploy` — a full deploy rebuilds all of them.
 
+**One step cannot be automated.** Go to **Site Builder → Pages → Configuration** on the DevCon
+site and select the `DevCon Theme Css` theme. Until you do, the site renders with Liferay's
+Classic theme and none of the branding applies. You will have to repeat this after every
+theme redeploy — see
+[Theme selection is manual, and every redeploy loses it](#theme-selection-is-manual-and-every-redeploy-loses-it).
+
 > **`bundles/` is gitignored.** It holds the Liferay install and the database, and never
 > travels through git. A `git pull` therefore never changes what your running portal serves —
 > see [How to change things](#how-to-change-things).
@@ -49,6 +55,7 @@ render afterwards. Deploy a single extension instead with
 ```
 client-extensions/
   devcon-global-css/     globalCSS   — stylesheet injected on every page
+  devcon-theme-css/      themeCSS    — the site theme; Clay build + design tokens
   devcon-site-init/      siteInitializer — the DevCon site, its pages and fragments
   devcon-batch/          batch       — object definitions and sample data
 configs/                 per-environment portal properties (local, dev, uat, prod, docker)
@@ -100,6 +107,38 @@ and `/o/c/sessions`.
 **Objects sit outside the site initializer on purpose.** They are company scoped, so they
 survive the site deletion that a page change requires. Sample data is not lost every time a
 fragment moves.
+
+### The theme
+
+`devcon-theme-css` replaces the Classic theme's stylesheets outright. Its source is four SCSS
+partials; `blade gw deploy` runs Liferay's own theme builder against the `_styled` / `_unstyled`
+parent themes and emits the compiled CSS into `static/`.
+
+```
+devcon-theme-css/
+  client-extension.yaml            clayURL / mainURL / their RTL pairs / token JSON
+  frontend-token-definition.json   which variables an editor may change, and their defaults
+  src/css/
+    clay.scss                      entry point — selects the custom-properties Clay build
+    _clay_variables.scss           SCSS variables ($primary) — compiled in
+    _clay_custom.scss              CSS emitted after Clay, used to force light mode
+    _custom.scss                   theme-layer CSS (empty)
+    _liferay_variables_custom.scss Liferay SCSS variables (empty)
+```
+
+Colour reaches the page by two routes, and the difference is the whole point of this extension:
+
+```
+_clay_variables.scss  →  $primary  →  compiled into clay.css   (build time, developer)
+frontend-token-…json  →  :root { --… }  →  read by clay.css    (runtime, editor)
+```
+
+They meet at the fallback. Every Clay rule compiles to
+`var(--btn-primary-background-color, #7b2ff7)` — the token wins if one is set, otherwise the
+compiled SCSS value shows. Three tokens are exposed: `devconAccent`, `devconAccentAlt`, and
+`btnPrimaryBackgroundColor`. The first two drive the gradient stripe that
+`devcon-global-css` has painted since [#1](../../pull/1), so a colour picker in the Style Book
+edits CSS written in the first pull request.
 
 ## Build log
 
@@ -180,6 +219,28 @@ objects, round-trip byte-for-byte.
 
 **This step ships one line that is not portable.** See
 [Object-backed Collections cannot be expressed portably](#object-backed-collections-cannot-be-expressed-portably).
+
+### [#10](../../pull/10) Theme CSS client extension
+
+A `themeCSS` CET carrying the site's brand, plus a frontend token definition that exposes
+three colours to the Style Book editor. `devcon-global-css` stopped declaring
+`--devcon-accent` itself and now consumes the theme's tokens with a hardcoded fallback.
+
+Built in four moves, each verified before the next:
+
+| | Change | Proved by |
+| --- | --- | --- |
+| 1 | Empty `src/` | Byte-identical to Classic — plumbing works before anything changes |
+| 2 | `$primary: #7b2ff7` | `0b5fff` count → 0, `7b2ff7` → 116 in the compiled `clay.css` |
+| 3 | `clay.scss` → custom-properties build | `var(--` count 0 → 9776, purple kept as the fallback |
+| 4 | Token definition | Emitted `:root` properties 116 → 3 |
+
+Step 3 is the one that matters. Without it the theme is frozen at build time and a style book
+cannot change anything — see
+[Design tokens do nothing unless the Clay build reads them](#design-tokens-do-nothing-unless-the-clay-build-reads-them).
+
+Two manual steps survive this PR and cannot be removed: selecting the theme, and re-selecting
+it after every redeploy.
 
 ## Things that cost us time
 
@@ -363,6 +424,134 @@ front end after any batch import**, not just the row count. A targeted update re
 document synchronously; a global reindex is asynchronous and can complete partially while
 reporting nothing.
 
+### A `themeCSS` CET replaces the theme's stylesheets — it does not add to them
+
+The properties it accepts map one-to-one onto the files `classic-theme.war` ships:
+
+```
+clayURL / clayRTLURL   ↔  css/clay.css      css/clay_rtl.css
+mainURL / mainRTLURL   ↔  css/main.css      css/main_rtl.css
+frontendTokenDefinitionJSON  ↔  WEB-INF/frontend-token-definition.json
+```
+
+`ClientExtensionsServicePreAction` calls `themeDisplay.setClayCSSURL(cet.getClayURL())` with
+**no blank check and no fallback**. So an omitted `clayURL` does not mean "keep Classic's" — it
+means the page gets no Clay stylesheet at all and renders bare. The docs call `clayURL`
+required; validation does not enforce it (`Validator.isBlank(x)` jumps past the check), so a
+theme missing it builds, deploys, and destroys the site's styling in silence.
+
+The same applies to the RTL pair: set only the LTR URLs and switching the portal to an RTL
+language renders unstyled.
+
+You do not have to author any of this. The workspace plugin's `ThemeCSSTypeConfigurer` applies
+Liferay's own `BuildThemeTask` and `BuildCSSTask` against the `_styled` / `_unstyled` parents,
+so an **empty** `src/` still produces a complete, Classic-equivalent theme. Start there and
+confirm the site looks unchanged before writing a line of SCSS.
+
+### YAML keys are passed through verbatim and never validated
+
+The build copies each key into `typeSettings` as a string:
+
+```json
+"typeSettings" : [ "clayURL=css/clay.css", "mainURL=css/main.css" ]
+```
+
+Nothing checks that list against what the portal reads. `ThemeCSSCETImpl` calls
+`getString("mainURL")`, so the `mainUrl` spelling in `skills/theme-and-design/SKILL.md` lands
+as a `mainUrl=` entry that nothing ever reads, returns blank, and unstyles the site — with a
+clean build and no error at any layer. The same card documents a `clayVersion` property that
+exists in neither the portal nor the workspace plugin.
+
+Check the generated config rather than the YAML:
+
+```bash
+unzip -p <project>/dist/<name>.zip <name>.client-extension-config.json
+```
+
+### Design tokens do nothing unless the Clay build reads them
+
+The parent theme's `clay.scss` is `@import 'clay/base'`, which compiles SCSS variables to
+literal values:
+
+```css
+.btn-primary { background-color: #7b2ff7; }
+```
+
+Classic instead uses the `clay/atlas-custom-properties` variant:
+
+```css
+.btn-primary { background-color: var(--btn-primary-background-color, #0b5fff); }
+```
+
+Count them: `clay/base` produced **0** `var(--` references, `atlas-custom-properties` produced
+**9776**. With the first, a style book, a token definition, and every value in the emitted
+`:root` block are inert — the CSS never looks at them.
+
+`atlas-custom-properties.scss` imports its own variables file and **not** `../clay_variables`,
+so switching to it naively discards your SCSS. Import both, yours first, so Clay's `!default`
+declarations lose:
+
+```scss
+// src/css/clay.scss
+@import "clay_variables";
+@import "clay/atlas-custom-properties";
+```
+
+The fallback in `var(--btn-primary-background-color, $primary)` is what makes the two systems
+compose instead of compete.
+
+**This variant also brings dark mode**, via `color-scheme: light dark` and `light-dark()`
+values. It cannot be switched off — `components/_root.scss` guards the dark block with
+`@if (variable-exists(c-dark))` and Clay always defines `$c-dark`. Overriding `$c-root` does not
+help, because the dark block is emitted *after* the first `:root`. Beat it on the cascade from
+`_clay_custom.scss`, which is imported last:
+
+```scss
+:root { color-scheme: only light; }
+```
+
+DevCon is deliberately light-only. Dark mode is one deleted rule away, but the fragments
+hardcode light backgrounds with inherited text colour and turn unreadable — fix those first.
+
+### Theme selection is manual, and every redeploy loses it
+
+Selecting a theme CSS CET writes a `ClientExtensionEntryRel` row binding the layout set to the
+client extension entry. Redeploying the CET replaces that entry and orphans the row, so the
+site silently reverts to Classic. **The theme must be re-selected in Site Builder → Pages →
+Configuration after every deploy.**
+
+It cannot be declared in the site initializer either. `layout-set/public/metadata.json` accepts
+`themeName`, but `BundleSiteInitializer._getThemeId` resolves names through
+`ThemeLocalService.getThemes()`, which contains **WAR themes only**. A CET theme is not a Theme
+and never appears there. Setting `"themeName": "DevCon Theme Css"` is ignored without any
+warning — the site initializes cleanly and comes up on Classic.
+
+This is a known gap, not a misconfiguration:
+[I would like the ability to set the Theme CSS Client Extension via Site Initializer](https://discuss.liferay.com/t/i-would-like-the-ability-to-set-the-theme-css-client-extension-via-site-initializer/230)
+— open in Product Ideas since December 2025, no official response and no LPS/LPD ticket.
+
+So this is the second place the initializer's "single source of truth" claim has a hole, after
+[object-backed Collections](#object-backed-collections-cannot-be-expressed-portably). Both are
+documented as procedure rather than papered over.
+
+### Theme CSS is served with no cache headers
+
+Classic's stylesheets are linked with a cache-busting timestamp
+(`clay.css?browserId=other&…&t=1739913722000`). A CET's are linked bare:
+
+```
+/o/devcon-theme-css/css/clay.css
+```
+
+and the response carries no `Cache-Control`, no `ETag`, and no `Last-Modified`. Browsers
+heuristically cache it, so after a redeploy you keep seeing the old stylesheet. **Hard-reload
+before concluding a theme change did not work** — verify what the server sends, not what the
+browser shows:
+
+```bash
+curl -s http://localhost:8080/o/devcon-theme-css/css/clay.css | grep -n "color-scheme:"
+```
+
 ### The authoritative list of client extension types
 
 Not the reference card — read it from the workspace plugin itself:
@@ -394,8 +583,14 @@ After pulling someone else's change:
 | Initializer tree: **pages, composition, or fragment content** | Delete the site in Control Panel, then deploy |
 | `configs/<env>/` | `cp configs/local/portal-ext.properties bundles/portal-ext.properties` then restart |
 | Object definitions or data | `blade gw :client-extensions:devcon-batch:deploy` |
+| `devcon-theme-css` | Deploy, **re-select the theme**, then hard-reload the browser |
 
 Not sure what a pull changed? `git log --stat HEAD@{1}..HEAD`.
+
+The theme row has two manual steps for a reason: a redeploy orphans the theme binding, and the
+CSS is served without cache headers. Neither is avoidable — see
+[Theme selection is manual](#theme-selection-is-manual-and-every-redeploy-loses-it) and
+[Theme CSS is served with no cache headers](#theme-css-is-served-with-no-cache-headers).
 
 The third row is the expensive one. A site initializer runs **once, at site creation** —
 redeploying will not retrofit a fragment or a composition change onto a page that already

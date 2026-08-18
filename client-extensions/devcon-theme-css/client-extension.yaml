@@ -1,0 +1,8 @@
+devcon-theme-css:
+  frontendTokenDefinitionJSON: frontend-token-definition.json
+  clayURL: css/clay.css
+  clayRTLURL: css/clay_rtl.css
+  mainURL: css/main.css
+  mainRTLURL: css/main_rtl.css
+  name: DevCon Theme Css
+  type: themeCSS
