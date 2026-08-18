@@ -1,23 +1,26 @@
 /*
  * Injected on every page by the devcon-global-css client extension.
  *
- * Additive only: this file must never redefine a class that already exists in
- * the theme. At equal specificity the later stylesheet wins, which produces
- * cascade conflicts that are painful to trace. New selectors only.
+ * Additive only: never redefine a selector the theme already styles, and never
+ * declare a variable the theme owns. At equal specificity the later stylesheet
+ * wins, and this file loads after the theme's token block -- so a :root rule
+ * here silently overrides the Style Book. That happened: --devcon-accent was
+ * declared below and beat its own token until the declaration was removed.
+ *
+ * Brand colours now come from devcon-theme-css via frontend-token-definition.json.
+ * Read them with var(), always with a fallback: this file is company scoped, so
+ * it also loads on pages where the DevCon theme is not applied and no token
+ * exists. Without the fallback the whole declaration is invalid and the rule
+ * disappears.
  */
 
-:root {
-	--devcon-accent: #0b5fff;
-	--devcon-accent-alt: #7b2ff7;
-}
-
-/* Proof-of-deploy accent stripe. A new pseudo-element on body, so nothing the
-   theme already styles is touched. */
+/* Accent stripe. A new pseudo-element on body, so nothing the theme already
+   styles is touched. */
 body::before {
 	background: linear-gradient(
 		90deg,
-		var(--devcon-accent),
-		var(--devcon-accent-alt)
+		var(--devcon-accent, #0b5fff),
+		var(--devcon-accent-alt, #7b2ff7)
 	);
 	content: "";
 	display: block;

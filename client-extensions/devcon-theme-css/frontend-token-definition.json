@@ -1,0 +1,55 @@
+{
+  "frontendTokenCategories": [
+    {
+      "frontendTokenSets": [
+        {
+          "frontendTokens": [
+            {
+              "defaultValue": "#0b5fff",
+              "editorType": "ColorPicker",
+              "label": "Accent",
+              "mappings": [
+                {
+                  "type": "cssVariable",
+                  "value": "devcon-accent"
+                }
+              ],
+              "name": "devconAccent",
+              "type": "String"
+            },
+            {
+              "defaultValue": "#7b2ff7",
+              "editorType": "ColorPicker",
+              "label": "Button Background",
+              "mappings": [
+                {
+                  "type": "cssVariable",
+                  "value": "btn-primary-background-color"
+                }
+              ],
+              "name": "btnPrimaryBackgroundColor",
+              "type": "String"
+            },
+            {
+              "defaultValue": "#7b2ff7",
+              "editorType": "ColorPicker",
+              "label": "DevCon Accent Alt",
+              "mappings": [
+                {
+                  "type": "cssVariable",
+                  "value": "devcon-accent-alt"
+                }
+              ],
+              "name": "devconAccentAlt",
+              "type": "String"
+            }
+          ],
+          "label": "Brand",
+          "name": "devconBrand"
+        }
+      ],
+      "label": "DevCon Colors",
+      "name": "devconColors"
+    }
+  ]
+}
