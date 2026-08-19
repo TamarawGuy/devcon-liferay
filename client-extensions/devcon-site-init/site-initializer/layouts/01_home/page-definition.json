@@ -17,7 +17,7 @@
 				"definition": {
 					"collectionConfig": {
 						"collectionReference": {
-							"className": "com.liferay.object.model.ObjectDefinition#A4A0"
+							"className": "[$OBJECT_DEFINITION_CLASS_NAME:Session$]"
 						},
 						"collectionType": "CollectionProvider"
 					},
@@ -47,6 +47,18 @@
 														"fieldKey": "ObjectField_title",
 														"itemReference": {
 															"contextSource": "CollectionItem"
+														}
+													}
+												},
+												"fragmentLink": {
+													"value": {
+														"href": {
+															"mapping": {
+																"fieldKey": "LayoutPageTemplateEntry_[$LAYOUT_PAGE_TEMPLATE_ENTRY_ID:session$]",
+																"itemReference": {
+																	"contextSource": "CollectionItem"
+																}
+															}
 														}
 													}
 												}

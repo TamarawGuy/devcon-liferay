@@ -31,3 +31,5 @@ test-results
 
 # Claude Code local permission overrides (machine-specific)
 .claude/settings.local.json
+# Scratch folder for UI exports (.zip / .lar) being converted into source
+zipdrops/

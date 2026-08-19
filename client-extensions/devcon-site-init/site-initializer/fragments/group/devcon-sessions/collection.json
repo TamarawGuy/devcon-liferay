@@ -1,1 +1,4 @@
-{"name":"DevCon Sessions","description":"DevCon fragments"}
+{
+	"description": "Fragments that render Session object data",
+	"name": "Sessions"
+}
