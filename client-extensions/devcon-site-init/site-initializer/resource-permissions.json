@@ -1,0 +1,9 @@
+[
+  {
+    "actionIds": ["VIEW"],
+    "primKey": "[$COMPANY_ID$]",
+    "resourceName": "com.liferay.object#[$OBJECT_DEFINITION_ID:DEVCON_SESSION$]",
+    "roleName": "Guest",
+    "scope": "1"
+  }
+]

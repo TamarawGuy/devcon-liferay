@@ -65,22 +65,39 @@ CLAUDE.md                workspace-specific facts, commands, credentials
 
 ### The site
 
-`devcon-site-init` provisions a site with ERC `DEVCON` containing one Content Page, `Home`
-at `/home`, carrying a `hero` fragment. Its source tree:
+`devcon-site-init` provisions a site with ERC `DEVCON` containing one Content Page, `Home` at
+`/home` — a `hero` fragment above a Collection Display that renders one `session-card` per
+`Session` record. Its source tree:
 
 ```
 site-initializer/
   layout-set/public/metadata.json        theme assignment for the public layout set
+  resource-permissions.json              role grants, e.g. Guest VIEW on Session entries
   layouts/01_home/
     page.json                            page metadata, incl. Guest VIEW permission
     page-definition.json                 fragment composition
-  fragments/group/devcon/
-    collection.json
-    fragments/hero/                      dir name is the fragment key
-      fragment.json                      htmlPath / cssPath / icon / type
-      index.html                         editable regions via data-lfr-editable-*
-      index.css                          all rules prefixed #wrapper .devcon-hero
+  layout-page-templates/
+    display-page-templates/session/      per-entry page for a Session
+      display-page-template.json         which content type it renders
+      page-definition.json               fragments, mapped via DisplayPageItem
+  fragments/
+    group/                               scope: this site. (company/ = whole instance)
+      devcon-sections/                   fragment SET — dir name is its key
+        collection.json                  the set's display label
+        fragments/                       literal, required nesting level
+          hero/                          FRAGMENT — dir name is its key
+            fragment.json                htmlPath / cssPath / icon / type
+            index.html                   editable regions via data-lfr-editable-*
+            index.css                    all rules prefixed #wrapper .devcon-hero
+      devcon-sessions/
+        collection.json
+        fragments/session-card/
 ```
+
+**Directory names are the machine keys; the `name` in each JSON is the human label, and the two
+are unrelated.** `page-definition.json` references the *fragment* key (`hero`, `session-card`)
+plus `"siteKey": "[$GROUP_KEY$]"` — never the set key, which is why renaming a set costs
+nothing outside its own folder.
 
 ### The data model
 
@@ -107,6 +124,13 @@ and `/o/c/sessions`.
 **Objects sit outside the site initializer on purpose.** They are company scoped, so they
 survive the site deletion that a page change requires. Sample data is not lost every time a
 fragment moves.
+
+That decision has a cost discovered later: the initializer only resolves object tokens for
+definitions **it** owns, so keeping them here forces a hardcoded class name into
+`page-definition.json`. The likely resolution is to move the *definitions* into the
+initializer's `object-definitions/` folder while leaving *entries* in `devcon-batch` — both
+are company scoped, so the survival property holds either way. See
+[Object tokens resolve only for object definitions the initializer owns](#object-tokens-resolve-only-for-object-definitions-the-initializer-owns).
 
 ### The theme
 
@@ -209,16 +233,16 @@ definitions  →  raw DTO, no envelope — must be wrapped by hand
 
 ### [#9](../../pull/9) Session list on the Home page
 
-A `session-card` fragment in a new `DevCon Sessions` set, rendered once per record by a
-**Collection Display** bound to the `Session` object. Field mappings are declarative —
-`ObjectField_title`, `ObjectField_startTime`, `ObjectField_room` map to the fragment's
-editable regions — so a content editor can restyle or remap without touching code.
+A `session-card` fragment in its own set, rendered once per record by a **Collection Display**
+bound to the `Session` object. Field mappings are declarative — `ObjectField_title`,
+`ObjectField_startTime`, `ObjectField_room` map to the fragment's editable regions — so a
+content editor can restyle or remap without touching code.
 
 The fragment was authored in the Liferay fragment editor and exported. Fragments, unlike
 objects, round-trip byte-for-byte.
 
 **This step ships one line that is not portable.** See
-[Object-backed Collections cannot be expressed portably](#object-backed-collections-cannot-be-expressed-portably).
+[Object tokens resolve only for object definitions the initializer owns](#object-tokens-resolve-only-for-object-definitions-the-initializer-owns).
 
 ### [#10](../../pull/10) Theme CSS client extension
 
@@ -348,40 +372,69 @@ headless-delivery     /sites/{siteId}                  → 20117      (ERC 404s)
 the reprovision recipe in `rules/site-initializer-format.md` cannot be followed as written.
 Delete the site from the Control Panel instead.
 
-### Object-backed Collections cannot be expressed portably
+### Object tokens resolve only for object definitions the initializer owns
 
-`layouts/01_home/page-definition.json` contains this, and it **will not work on your
-machine**:
+> **This section previously claimed `OBJECT_DEFINITION_CLASS_NAME` does not exist and that a
+> site initializer resolves exactly eight tokens. Both were wrong.** The conclusion — that our
+> collection is not portable — happens to be correct, but for a different reason. The wrong
+> version was written from an incomplete search; this one is read from the importer's bytecode.
+
+`layouts/01_home/page-definition.json` contains this, and it **will not work on your machine**:
 
 ```json
 "className": "com.liferay.object.model.ObjectDefinition#A4A0"
 ```
 
-That `#A4A0` suffix is generated **randomly per object definition**. Measured directly:
-creating an object, deleting it, and recreating it with an identical ERC, name, and fields
-produced `#U9Q3` and then `#H1B0`. It is not derived from the ERC, the name, or anything you
-control.
+The `#A4A0` suffix is generated **randomly per object definition**. Measured directly: creating
+an object, deleting it, and recreating it with an identical ERC, name, and fields produced
+`#U9Q3` and then `#H1B0`. It is not derived from the ERC, the name, or anything you control.
 
-A site initializer resolves exactly **eight** tokens, and none yields a class name:
+The importer resolves **25 argument-taking tokens**, plus argument-less ones such as
+`[$COMPANY_ID$]`, `[$GROUP_ID$]`, `[$GROUP_KEY$]`, `[$GROUP_FRIENDLY_URL$]` and `[$PORTAL_URL$]`:
 
 ```
-[$COMPANY_ID  [$GROUP_FRIENDLY_URL  [$GROUP_ID    [$GROUP_KEY
-[$LAYOUT_ID   [$LIST_TYPE_DEFINITION_ID  [$OBJECT_DEFINITION_ID  [$PORTAL_URL
+ASSET_LIST_ENTRY_ID   DDM_TEMPLATE_ID              OBJECT_DEFINITION_CLASS_NAME
+BLOG_POSTING_ID       DOCUMENT_FILE_ENTRY_ID       OBJECT_DEFINITION_ID
+CLASS_NAME_ID         DOCUMENT_FILE_ENTRY_TYPE_ID  OBJECT_DEFINITION_PORTLET_ID
+CLIENT_EXTENSION_ENTRY_ERC  DOCUMENT_JSON          RELEASE_INFO
+DATA_DEFINITION_ID    DOCUMENT_URL                 ROLE_ID
+DDM_STRUCTURE_ID      KEYWORD_ID                   SEGMENTS_ENTRY_ID
+                      LAYOUT_ID                    SITE_NAVIGATION_MENU_ITEM_ID
+                      LAYOUT_PAGE_TEMPLATE_ENTRY_ID  TAXONOMY_CATEGORY_ID
+                      LIST_TYPE_DEFINITION_ID      TAXONOMY_VOCABULARY_ID
+                                                   TEMPLATE_ENTRY_ID
 ```
 
-Four source forms were tried. Only the literal works:
+Read them yourself — this is how the list above was produced:
 
-| Form | Result |
-| --- | --- |
-| `[$OBJECT_DEFINITION_CLASS_NAME:Session$]` | dropped — token does not exist |
-| `[$OBJECT_DEFINITION_CLASS_NAME:DEVCON_SESSION$]` | dropped — same |
-| `className` + `classPK` via `[$OBJECT_DEFINITION_ID:Session$]` | dropped |
-| literal `…ObjectDefinition#A4A0` | **works** |
+```bash
+unzip -p bundles/osgi/portal/com.liferay.site.initializer.extender.jar \
+  '*/BundleSiteInitializer.class' | LC_ALL=C grep -ao "[A-Z][A-Z_]\{4,40\}:" | sort -u
+```
 
-`OBJECT_DEFINITION_CLASS_NAME` appears in **no jar** in the portal. Several sources online
-present it as standard; it may exist in a quarterly release, but not in 7.4 GA132.
+**So `[$OBJECT_DEFINITION_CLASS_NAME:Session$]` is a real token — and it still resolves to
+nothing here.** `BundleSiteInitializer._addObjectDefinitions` builds the token map from:
 
-**To make the collection work on your machine**, read your own suffix and paste it in:
+```java
+_objectDefinitionLocalService.getObjectDefinitions(companyId, true, 0)
+                                                              ↑ system
+```
+
+**system object definitions only** — plus, separately, each definition the initializer creates
+from its own `object-definitions/` folder. `Session` is `"system": false` and is created by
+`devcon-batch`, so it is in neither set and the token is never registered. The literal
+`[$OBJECT_DEFINITION_CLASS_NAME:Session$]` is then written into the page, the collection binds
+to nothing, and the page renders **"No Results Found"** with nothing in any log.
+
+The evidence that the boolean is `system` and not `active`: `Session` is `active: true` and
+`approved`, so an `active` filter would have matched and the token would have worked.
+
+**The real fix is to move the object definitions into the initializer's `object-definitions/`
+folder**, which makes the token resolve and the collection portable. Both definitions and
+entries are company-scoped, so that keeps the property [#7](../../pull/7) wanted — data
+surviving site deletion — while removing the hardcoded class name. Not done yet.
+
+**Until then, to make the collection work on your machine**, read your own suffix and paste it in:
 
 ```bash
 curl -s -u <user>:<pass> \
@@ -389,8 +442,63 @@ curl -s -u <user>:<pass> \
   | grep -o '"className"[^,]*'
 ```
 
-Then delete the DevCon site and redeploy. Symptom if you skip this: the page renders with
-**"No Results Found"** under the hero, and nothing in any log explains why.
+Then delete the DevCon site and redeploy.
+
+### Liferay returns 404 for content you lack permission to see
+
+Not `403`. A permission denial is indistinguishable from a missing route, a wrong URL, a
+disabled feature, or an unpublished template — every one of which looks like `404`.
+
+This cost an afternoon. A display page template was built, published, and marked default, and
+every entry URL returned `404`. Three hypotheses were pursued and two were wrong: that the URL
+format was wrong (it wasn't), and that company-scoped objects can't have display pages (they
+can). The actual cause was that `Guest` had no `VIEW` permission on the entries.
+
+**The diagnostic is one line — compare authenticated against anonymous:**
+
+```bash
+curl -s -o /dev/null -w "anon:  %{http_code}\n" "$URL"
+curl -s -o /dev/null -w "auth:  %{http_code}\n" -u "$USER:$PASS" "$URL"
+```
+
+`404` / `200` means permissions, every time. Run this **before** questioning the URL.
+
+### Object permissions have two layers, granted in different places
+
+Granting `Guest` access to an object in **Control Panel → Roles → Guest → Define Permissions →
+Objects** only grants the *definition* layer. Entries stay invisible:
+
+```
+GET /o/c/sessions        (anon) -> 200      definition layer: granted
+GET /o/c/sessions/34061  (anon) -> 404      entry layer: not granted
+totalCount as Guest: 0 of 6
+```
+
+The endpoint answers, and reports zero records. A public site with an empty collection.
+
+The entry-layer resource name comes from `ObjectDefinitionImpl.getResourceName()`:
+
+```
+com.liferay.object#<objectDefinitionId>
+```
+
+Per-entry grants work over REST and are useful for diagnosis, but they don't scale and don't
+cover entries created later:
+
+```bash
+curl -X PUT -u "$USER:$PASS" -H "Content-Type: application/json" \
+  -d '[{"actionIds":["VIEW"],"roleName":"Guest"}]' \
+  "http://localhost:8080/o/c/sessions/<id>/permissions"
+```
+
+The portable form is `site-initializer/resource-permissions.json`. The importer calls
+`setResourcePermissions(companyId, name, scope, primKey, roleId, actionIds)`, so at `scope: 1`
+(company) `primKey` must be the company id — `"0"`, which shipped examples use for *portal*
+resources, is wrong here.
+
+**DevCon was not publicly visible from [#9](../../pull/9) until this was found.** Every
+screenshot until then was taken as an administrator. If you build a public site here, check it
+signed out before believing it works.
 
 ### `numberOfItems` is mandatory, and omitting it destroys the whole site
 
@@ -531,8 +639,8 @@ This is a known gap, not a misconfiguration:
 — open in Product Ideas since December 2025, no official response and no LPS/LPD ticket.
 
 So this is the second place the initializer's "single source of truth" claim has a hole, after
-[object-backed Collections](#object-backed-collections-cannot-be-expressed-portably). Both are
-documented as procedure rather than papered over.
+[object references](#object-tokens-resolve-only-for-object-definitions-the-initializer-owns).
+Both are documented as procedure rather than papered over.
 
 ### Theme CSS is served with no cache headers
 
@@ -551,6 +659,39 @@ browser shows:
 ```bash
 curl -s http://localhost:8080/o/devcon-theme-css/css/clay.css | grep -n "color-scheme:"
 ```
+
+### Display page templates: the UI export is lossy
+
+Exporting one from **Design → Page Templates → Display Page Templates** produces exactly the
+initializer's layout, which is convenient:
+
+```
+display-page-templates/session/display-page-template.json
+display-page-templates/session/page-definition.json
+```
+
+Three things the export gets wrong for source use:
+
+1. **`defaultTemplate` is dropped.** You mark it default in the UI; the export omits the flag.
+   Import it as-is and the template exists but nothing uses it — which presents as `404` on
+   every entry URL, i.e. the failure above wearing a different hat.
+2. **`settings` pins the theme** (`"themeName": "Classic"`). Remove it; `themeName` is ignored
+   for CET themes anyway.
+3. **`contentType.className` is the machine-specific `ObjectDefinition#A4A0`.** The two-part
+   `ObjectEntry` + `contentSubtype.subtypeKey` form that shipped Liferay initializers use for
+   web content **does not work for objects** — tried, and the template silently did not import.
+
+Object entry URLs use the `/e/` separator, not the `/l/` default returned by
+`ObjectEntryDisplayPageFriendlyURLResolver.getDefaultURLSeparator`:
+
+```
+/web/devcon/e/session/<displayPageTemplateId>/<entryId>
+```
+
+Don't derive it — map a fragment link to the item in the page editor and read the href Liferay
+generates. Internally that link is stored as `LayoutPageTemplateEntry_<id>` with
+`mapperType: "link"`, visible by exporting the page as a `.lar` (a zip) and decoding
+`__editableValues` in `com.liferay.fragment.model.FragmentEntryLink/<id>.xml`.
 
 ### The authoritative list of client extension types
 

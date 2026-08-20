@@ -1,0 +1,10 @@
+{
+  "contentSubtype": {
+    "subtypeKey": "DEVCON_SESSION"
+  },
+  "contentType": {
+    "className": "com.liferay.object.model.ObjectEntry"
+  },
+  "defaultTemplate": true,
+  "name": "Session"
+}

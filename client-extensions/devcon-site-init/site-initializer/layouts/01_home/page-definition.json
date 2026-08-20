@@ -49,6 +49,18 @@
 															"contextSource": "CollectionItem"
 														}
 													}
+												},
+												"fragmentLink": {
+													"value": {
+														"href": {
+															"mapping": {
+																"fieldKey": "LayoutPageTemplateEntry_[$LAYOUT_PAGE_TEMPLATE_ENTRY_ID:session$]",
+																"itemReference": {
+																	"contextSource": "CollectionItem"
+																}
+															}
+														}
+													}
 												}
 											}
 										},

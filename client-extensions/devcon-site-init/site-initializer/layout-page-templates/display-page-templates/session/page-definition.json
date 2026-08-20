@@ -1,0 +1,55 @@
+{
+  "pageElement": {
+    "id": "c6c58deb-2a4e-f605-31f4-5e7448f62fce",
+    "pageElements": [
+      {
+        "definition": {
+          "fragment": { "key": "BASIC_COMPONENT-heading" },
+          "fragmentConfig": { "headingLevel": "h1" },
+          "fragmentFields": [
+            {
+              "id": "element-text",
+              "value": {
+                "fragmentLink": {},
+                "text": {
+                  "mapping": {
+                    "fieldKey": "ObjectField_title",
+                    "itemReference": { "contextSource": "DisplayPageItem" }
+                  }
+                }
+              }
+            }
+          ],
+          "indexed": true
+        },
+        "id": "a9331e2d-a35a-6ffc-7363-1e7ec9bb4fe6",
+        "type": "Fragment"
+      },
+      {
+        "definition": {
+          "fragment": { "key": "BASIC_COMPONENT-paragraph" },
+          "fragmentConfig": {},
+          "fragmentFields": [
+            {
+              "id": "element-text",
+              "value": {
+                "fragmentLink": {},
+                "text": {
+                  "mapping": {
+                    "fieldKey": "ObjectField_abstract",
+                    "itemReference": { "contextSource": "DisplayPageItem" }
+                  }
+                }
+              }
+            }
+          ],
+          "indexed": true
+        },
+        "id": "2430286f-7db2-edcf-abeb-f41ea04d9977",
+        "type": "Fragment"
+      }
+    ],
+    "type": "Root"
+  },
+  "version": 1.1
+}
