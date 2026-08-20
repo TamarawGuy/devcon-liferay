@@ -65,8 +65,9 @@ CLAUDE.md                workspace-specific facts, commands, credentials
 
 ### The site
 
-`devcon-site-init` provisions a site with ERC `DEVCON` containing one Content Page, `Home`
-at `/home`, carrying a `hero` fragment. Its source tree:
+`devcon-site-init` provisions a site with ERC `DEVCON` containing one Content Page, `Home` at
+`/home` — a `hero` fragment above a Collection Display that renders one `session-card` per
+`Session` record. Its source tree:
 
 ```
 site-initializer/
@@ -123,6 +124,13 @@ and `/o/c/sessions`.
 **Objects sit outside the site initializer on purpose.** They are company scoped, so they
 survive the site deletion that a page change requires. Sample data is not lost every time a
 fragment moves.
+
+That decision has a cost discovered later: the initializer only resolves object tokens for
+definitions **it** owns, so keeping them here forces a hardcoded class name into
+`page-definition.json`. The likely resolution is to move the *definitions* into the
+initializer's `object-definitions/` folder while leaving *entries* in `devcon-batch` — both
+are company scoped, so the survival property holds either way. See
+[Object tokens resolve only for object definitions the initializer owns](#object-tokens-resolve-only-for-object-definitions-the-initializer-owns).
 
 ### The theme
 
@@ -225,16 +233,16 @@ definitions  →  raw DTO, no envelope — must be wrapped by hand
 
 ### [#9](../../pull/9) Session list on the Home page
 
-A `session-card` fragment in a new `DevCon Sessions` set, rendered once per record by a
-**Collection Display** bound to the `Session` object. Field mappings are declarative —
-`ObjectField_title`, `ObjectField_startTime`, `ObjectField_room` map to the fragment's
-editable regions — so a content editor can restyle or remap without touching code.
+A `session-card` fragment in its own set, rendered once per record by a **Collection Display**
+bound to the `Session` object. Field mappings are declarative — `ObjectField_title`,
+`ObjectField_startTime`, `ObjectField_room` map to the fragment's editable regions — so a
+content editor can restyle or remap without touching code.
 
 The fragment was authored in the Liferay fragment editor and exported. Fragments, unlike
 objects, round-trip byte-for-byte.
 
 **This step ships one line that is not portable.** See
-[Object-backed Collections cannot be expressed portably](#object-backed-collections-cannot-be-expressed-portably).
+[Object tokens resolve only for object definitions the initializer owns](#object-tokens-resolve-only-for-object-definitions-the-initializer-owns).
 
 ### [#10](../../pull/10) Theme CSS client extension
 
@@ -631,8 +639,8 @@ This is a known gap, not a misconfiguration:
 — open in Product Ideas since December 2025, no official response and no LPS/LPD ticket.
 
 So this is the second place the initializer's "single source of truth" claim has a hole, after
-[object-backed Collections](#object-backed-collections-cannot-be-expressed-portably). Both are
-documented as procedure rather than papered over.
+[object references](#object-tokens-resolve-only-for-object-definitions-the-initializer-owns).
+Both are documented as procedure rather than papered over.
 
 ### Theme CSS is served with no cache headers
 

@@ -17,7 +17,7 @@
 				"definition": {
 					"collectionConfig": {
 						"collectionReference": {
-							"className": "[$OBJECT_DEFINITION_CLASS_NAME:Session$]"
+							"className": "com.liferay.object.model.ObjectDefinition#A4A0"
 						},
 						"collectionType": "CollectionProvider"
 					},
