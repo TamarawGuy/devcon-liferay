@@ -1,0 +1,8 @@
+{
+  "cacheable": false,
+  "cssPath": "index.css",
+  "htmlPath": "index.html",
+  "icon": "link",
+  "name": "DevCon Site Footer",
+  "type": "section"
+}
