@@ -67,7 +67,8 @@ CLAUDE.md                workspace-specific facts, commands, credentials
 
 `devcon-site-init` provisions a site with ERC `DEVCON` containing one Content Page, `Home` at
 `/home` — a `hero` fragment above a Collection Display that renders one `session-card` per
-`Session` record. Its source tree:
+`Session` record, wrapped in a `devcon` master page supplying the site header and footer. Its
+source tree:
 
 ```
 site-initializer/
@@ -80,6 +81,9 @@ site-initializer/
     display-page-templates/session/      per-entry page for a Session
       display-page-template.json         which content type it renders
       page-definition.json               fragments, mapped via DisplayPageItem
+    master-pages/devcon/                 dir name is the master's KEY
+      master-page.json                   just {"name": "DevCon"}
+      page-definition.json               header, DropZone, footer + theme settings
   fragments/
     group/                               scope: this site. (company/ = whole instance)
       devcon-sections/                   fragment SET — dir name is its key
@@ -88,11 +92,20 @@ site-initializer/
           hero/                          FRAGMENT — dir name is its key
             fragment.json                htmlPath / cssPath / icon / type
             index.html                   editable regions via data-lfr-editable-*
-            index.css                    all rules prefixed #wrapper .devcon-hero
+            index.css                    plain class selectors, no #wrapper prefix
+          site-header/                   brand + nav, used by the master page
+          site-footer/                   dark footer, used by the master page
       devcon-sessions/
         collection.json
         fragments/session-card/
 ```
+
+A page opts into a master through its **own** `page-definition.json`, in a top level
+`settings.masterPage.key` naming the master's directory — `Home` carries `"key": "devcon"`.
+The master's `settings.themeSettings` sets `lfr-theme:regular:show-header` and `show-footer`
+to `false`, which is what stops Classic's own chrome rendering above and below ours; those
+keys are declared in the theme's `WEB-INF/liferay-look-and-feel.xml` and consumed by
+`templates/portal_normal.ftl`.
 
 **Directory names are the machine keys; the `name` in each JSON is the human label, and the two
 are unrelated.** `page-definition.json` references the *fragment* key (`hero`, `session-card`)
@@ -265,6 +278,30 @@ cannot change anything — see
 
 Two manual steps survive this PR and cannot be removed: selecting the theme, and re-selecting
 it after every redeploy.
+
+### [#12](../../pull/12) Master page with site header and footer
+
+Two `section` fragments — `site-header` (brand + nav) and `site-footer` — wrapped in a
+`devcon` master page that `Home` opts into via `settings.masterPage.key`.
+
+Built deliberately as a **round trip through the UI**: author the master in
+`Design → Page Templates → Masters`, export the zip, commit the export into the initializer.
+The reason is that we cannot reliably guess the shape Liferay's importer wants — the DropZone
+in particular — and the export is Liferay's own serialiser telling us. It landed almost
+verbatim; see
+[The UI export round-trips cleanly for master pages](#the-ui-export-round-trips-cleanly-for-master-pages).
+The UI copy is scaffolding only: once exported, source is the truth and the live master is
+never edited again.
+
+Nav links are placeholder `href="#"`. Real navigation is a separate problem — a hardcoded list
+was chosen over `<lfr-widget-nav>` so that the master page mechanism could be proved with one
+variable at a time.
+
+Two workflow findings came out of this and changed how the repo is worked:
+[the initializer upserts into a live site](#the-initializer-upserts-into-a-live-site), and
+[fragment previews render without the theme](#fragment-previews-render-without-the-theme).
+The first invalidates a table in `rules/site-initializer-format.md`; the second is why no
+fragment CSS is prefixed `#wrapper` any more.
 
 ## Things that cost us time
 
@@ -693,6 +730,88 @@ generates. Internally that link is stored as `LayoutPageTemplateEntry_<id>` with
 `mapperType: "link"`, visible by exporting the page as a `.lar` (a zip) and decoding
 `__editableValues` in `com.liferay.fragment.model.FragmentEntryLink/<id>.xml`.
 
+### The initializer upserts into a live site
+
+`rules/site-initializer-format.md` claims a site initializer runs **once, at site creation**,
+and lists four change types as requiring a full reprovision. Two of the four are disproved by
+direct test:
+
+| Card says reprovision | Actually |
+| --- | --- |
+| Fragment content or new fragment | **No.** CSS edit appeared live, same group id, 63 ms |
+| New page, page composition change, fragment placement | **No.** A brand new master page plus rewiring Home applied live, same group id, 272 ms |
+
+Both were verified by fetching the rendered page before and after, not by reading a log line.
+The tell in the log is the phase timing — `addLayoutPageTemplates took 152 ms` on the run that
+imported the master page, against `0 ms` on every run before it.
+
+The catch is that **`blade gw deploy` alone does nothing** once the zip is built. Gradle sees
+its output as up-to-date, never re-copies, the bundle never reinstalls, and the initializer
+never fires. Remove the deployed artifact first:
+
+```bash
+rm bundles/osgi/client-extensions/devcon-site-init.zip
+blade gw :client-extensions:devcon-site-init:deploy
+```
+
+Confirm with `grep "Initialized DevCon" bundles/logs/liferay.$(date +%F).log` — a new line with
+the *same* group id means it upserted; a new group id means the site was recreated.
+
+This is the difference between a ten second frontend loop and a two minute one.
+
+### Liferay's logs are in GMT, your filesystem is not
+
+`bundles/tomcat/bin/setenv.sh` sets `-Duser.timezone=GMT`, so every timestamp in
+`liferay.<date>.log` and `catalina.out` is in GMT while `ls -la` and your clock are local.
+At UTC+3 a deploy at `17:12` local appears in the log as `14:12`. Worth knowing before
+concluding that a deploy "didn't produce any log output" — the entries are there, three hours
+up the file. The Elasticsearch sidecar logs in **local** time into the same `catalina.out`,
+so a single file can carry both.
+
+### Fragment previews render without the theme
+
+The Fragments editor preview renders a fragment standalone — no theme, no page. So any CSS
+anchored to a theme element silently does nothing there while working perfectly on a real page.
+We hit this with a `#wrapper` prefix used as a specificity hedge:
+
+```ftl
+<!-- classic-theme.war, templates/portal_normal.ftl line 24 -->
+<div class="d-flex flex-column flex-fill position-relative" id="wrapper">
+```
+
+That element exists on every rendered page and nowhere in the preview. All fragment CSS here
+now uses plain class selectors; the BEM names are unique enough not to need the extra
+specificity, and previews work.
+
+### There is no fragment-collection REST endpoint
+
+`rules/headless-apis.md` lists `POST /sites/{siteId}/fragment-collections` under
+**headless-admin-content**. That module's `openapi.json` contains **zero** paths matching
+`fragment` on 7.4 GA132, and so does headless-delivery's. The only fragment paths anywhere are
+`fragment-compositions` on headless-admin-site — a different entity (saved groups of
+fragments, not the collection). Fragments reach a site through the initializer tree or the UI,
+not over REST.
+
+### The UI export round-trips cleanly for master pages
+
+The display page export was lossy enough to need hand repair, so we expected the same here and
+were wrong. `Design → Page Templates → Masters → ⋮ → Export` produces exactly the initializer
+layout — `master-pages/<key>/{master-page.json,page-definition.json}` — and references
+fragments in the form the importer reads:
+
+```json
+"fragment": {"key": "site-header", "siteKey": "DevCon"}
+```
+
+Only two edits were needed: strip the `id` UUIDs (rows in your local database) and replace the
+literal `siteKey` with `[$GROUP_KEY$]` so it is not machine specific.
+
+Note that the **REST API disagrees with the export** about the same object.
+`GET /sites/{erc}/master-pages/{erc}/page-specifications` serialises fragments as
+`fragmentReference.externalReferenceCode`, and reports the DropZone as a bare
+`"definition": {}` when the export shows `fragmentSettings.unallowedFragments`. Export first,
+API second.
+
 ### The authoritative list of client extension types
 
 Not the reference card — read it from the workspace plugin itself:
@@ -721,7 +840,7 @@ After pulling someone else's change:
 | --- | --- |
 | A CET's source | `blade gw :client-extensions:<name>:deploy` |
 | Initializer tree, and you have **no** DevCon site | `blade gw deploy` — it autoprovisions |
-| Initializer tree: **pages, composition, or fragment content** | Delete the site in Control Panel, then deploy |
+| Initializer tree: **pages, composition, fragments, master pages** | `rm bundles/osgi/client-extensions/devcon-site-init.zip`, then deploy |
 | `configs/<env>/` | `cp configs/local/portal-ext.properties bundles/portal-ext.properties` then restart |
 | Object definitions or data | `blade gw :client-extensions:devcon-batch:deploy` |
 | `devcon-theme-css` | Deploy, **re-select the theme**, then hard-reload the browser |
@@ -733,11 +852,16 @@ CSS is served without cache headers. Neither is avoidable — see
 [Theme selection is manual](#theme-selection-is-manual-and-every-redeploy-loses-it) and
 [Theme CSS is served with no cache headers](#theme-css-is-served-with-no-cache-headers).
 
-The third row is the expensive one. A site initializer runs **once, at site creation** —
-redeploying will not retrofit a fragment or a composition change onto a page that already
-exists, because fragment HTML and CSS are copied onto the page when placed. Recreating the
-site from source is the only way to apply it, which is safe precisely because the source tree
-is the truth. Object data is company scoped and survives.
+The third row used to say "delete the site and reprovision", on the strength of the reference
+card. That is wrong — see
+[The initializer upserts into a live site](#the-initializer-upserts-into-a-live-site). The `rm`
+is the load bearing part: Gradle reports `up-to-date` and never re-copies the zip, so without
+it the bundle never reinstalls and nothing happens at all.
+
+If you do need a genuine reprovision — the source tree is the truth, so it is always safe —
+delete the site in Control Panel **and then** `rm` the zip and deploy. Deleting alone leaves
+you with no site and no way to get it back, which is a memorable ten minutes. Object data is
+company scoped and survives either way.
 
 ## Conventions
 
