@@ -1,0 +1,8 @@
+{
+  "cacheable": false,
+  "cssPath": "index.css",
+  "htmlPath": "index.html",
+  "icon": "upload",
+  "name": "DevCon Site Header (Logo Picker)",
+  "type": "section"
+}

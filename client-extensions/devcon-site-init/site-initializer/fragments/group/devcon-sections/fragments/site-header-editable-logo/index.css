@@ -1,0 +1,46 @@
+.devcon-header__brand {
+  display: inline-flex;
+  text-decoration: none;
+}
+
+.devcon-header__logo {
+  display: block;
+  width: 5rem;
+}
+
+.devcon-header {
+  background: #fff;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  padding: 1rem 1.5rem;
+}
+
+.devcon-header__inner {
+  align-items: center;
+  display: flex;
+  gap: 2rem;
+  justify-content: space-between;
+  margin: 0 auto;
+  max-width: 60rem;
+}
+
+.devcon-header__brand {
+  color: var(--devcon-accent, #0b5fff);
+  font-size: 1.25rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.devcon-header__nav {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.devcon-header__link {
+  color: inherit;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.devcon-header__link:hover {
+  color: var(--devcon-accent, #0b5fff);
+}
