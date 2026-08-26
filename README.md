@@ -94,6 +94,9 @@ site-initializer/
             index.html                   editable regions via data-lfr-editable-*
             index.css                    plain class selectors, no #wrapper prefix
           site-header/                   brand + nav, used by the master page
+          site-header-logo/              same, logo from resources/ (in git)
+            resources/devcon-logo.svg    referenced as [resources:devcon-logo.svg]
+          site-header-editable-logo/     same, logo picked in the UI. IN USE
           site-footer/                   dark footer, used by the master page
       devcon-sessions/
         collection.json
@@ -745,6 +748,11 @@ Both were verified by fetching the rendered page before and after, not by readin
 The tell in the log is the phase timing — `addLayoutPageTemplates took 152 ms` on the run that
 imported the master page, against `0 ms` on every run before it.
 
+`addLayoutPageTemplates` **overwrites** an existing master rather than skipping it. Tested by
+swapping the master's header fragment in the UI, setting source to a different one, and
+redeploying: the live page came back matching source. Masters reconcile like fragments, so a
+UI edit to one is scratch work, not state.
+
 The catch is that **`blade gw deploy` alone does nothing** once the zip is built. Gradle sees
 its output as up-to-date, never re-copies, the bundle never reinstalls, and the initializer
 never fires. Remove the deployed artifact first:
@@ -782,6 +790,50 @@ We hit this with a `#wrapper` prefix used as a specificity hedge:
 That element exists on every rendered page and nowhere in the preview. All fragment CSS here
 now uses plain class selectors; the BEM names are unique enough not to need the extra
 specificity, and previews work.
+
+### Three ways to put an image in a fragment, and they differ in where it lives
+
+The header exists in three variants precisely so the difference is visible. It is not a
+styling choice — it decides which environment the image is identical in, and whether an
+author can change it without a developer.
+
+| Route | Image lives in | Re-tints from theme tokens | Survives reprovision |
+| --- | --- | --- | --- |
+| Inline `<svg>` in `index.html` | the fragment markup | **yes** — CSS targets its `rect`/`path` | yes |
+| `resources/` file + `[resources:…]` | git, beside the fragment | no — `<img>` is opaque to CSS | yes |
+| `data-lfr-editable-type="image"` | Documents & Media; choice in the DB | no | **no** |
+
+The `[resources:…]` form is handled by `ResourcesFragmentEntryProcessor`, which compiles
+exactly this:
+
+```bash
+unzip -o -q bundles/osgi/portal/com.liferay.fragment.entry.processor.resources.jar -d /tmp/resx
+javap -p -v /tmp/resx/com/liferay/fragment/entry/processor/resources/util/ResourcesFragmentEntryProcessorUtil.class \
+  | grep 'resources:'
+# => #86 = String  \\[resources:(.+?)\\]
+```
+
+(`javap` needs a real file — piping the class in on stdin does not work, which is the sort of
+thing that makes a documented command rot silently.)
+
+Resources resolve **within one fragment**. Two fragments needing the same asset each carry
+their own copy; there is no shared folder at the set level.
+
+The third route stores the author's choice in `FragmentEntryLink.__editableValues`, so the
+rendered `src` becomes a Documents & Media URL:
+
+```
+src="/documents/d/devcon/devcon-logo-2-svg?download=true"
+```
+
+That value survives `rm zip && deploy` — an upsert does not touch it. It does **not** survive
+deleting the site, because it is database state and the site is rebuilt from source. Which
+makes editable images right for content an author owns and wrong for brand assets that must
+match across environments.
+
+One more wrinkle specific to master pages: editable regions there are edited **once for the
+whole site**, not per page. A logo in a master is a site-wide setting wearing a page editor's
+clothes.
 
 ### There is no fragment-collection REST endpoint
 
